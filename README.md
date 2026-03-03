@@ -17,7 +17,7 @@ Quartus's argument parser intercepts `-stylesheet` before Qt can process it on L
 
 Tested with Quartus Prime Pro 25.3.1 (Qt 6.5.7) on Linux Mint 22.
 
-<video controls src="assets/quartus_mint_demo2.gif" title="Title"></video>
+![alt text](assets/quartus_mint_demo2.gif)
 
 ## Requirements
 
