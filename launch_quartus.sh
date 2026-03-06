@@ -40,5 +40,17 @@ fi
 sed "s|:/dark_icons/|$SCRIPT_DIR/dark_icons/|g" "$QSS_SOURCE" > "$QSS_RESOLVED"
 
 export QUARTUS_QSS="$QSS_RESOLVED"
+# Auto-detect QSYS font size based on monitor DPI (overridable via QSYS_FONTSIZE)
+if [ -z "$QSYS_FONTSIZE" ]; then
+    DPI=$(xdpyinfo 2>/dev/null | grep -oP 'resolution:\s+\K[0-9]+' | head -1)
+    if [ -n "$DPI" ] && [ "$DPI" -ge 144 ]; then
+        QSYS_FONTSIZE=24
+    elif [ -n "$DPI" ] && [ "$DPI" -gt 96 ]; then
+        QSYS_FONTSIZE=18
+    else
+        QSYS_FONTSIZE=12
+    fi
+fi
+export QSYS_FONTSIZE
 export LD_PRELOAD="${LD_PRELOAD:+$LD_PRELOAD:}$INJECT_LIB"
 exec "$QUARTUS_BIN" "$@"
