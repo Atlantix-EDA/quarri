@@ -9,6 +9,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 QSS_SOURCE="$SCRIPT_DIR/darkstyle.qss"
 QSS_RESOLVED="/tmp/quartus_darkstyle_resolved.qss"
 INJECT_LIB="$SCRIPT_DIR/target/release/libqss_inject.so"
+# Fallback for workspace layout
+[ ! -f "$INJECT_LIB" ] && INJECT_LIB="$SCRIPT_DIR/inject/target/release/libqss_inject.so"
 
 # Auto-detect Quartus if not set
 if [ -z "$QUARTUS_BIN" ]; then
@@ -27,9 +29,9 @@ if [ ! -f "$QUARTUS_BIN" ]; then
 fi
 
 # Build inject library if missing or outdated
-if [ ! -f "$INJECT_LIB" ] || [ "$SCRIPT_DIR/src/lib.rs" -nt "$INJECT_LIB" ]; then
+if [ ! -f "$INJECT_LIB" ] || [ "$SCRIPT_DIR/inject/src/lib.rs" -nt "$INJECT_LIB" ]; then
     echo "Building qss_inject..."
-    cargo build --release --manifest-path="$SCRIPT_DIR/Cargo.toml"
+    cargo build --release --manifest-path="$SCRIPT_DIR/Cargo.toml" -p qss_inject
     if [ $? -ne 0 ]; then
         echo "Error: Build failed (is cargo/rustc installed?)"
         exit 1

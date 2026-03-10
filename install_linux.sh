@@ -1,6 +1,9 @@
 #!/bin/bash
 # Install dark mode editor/RTL colors into Quartus settings on Linux.
 # Run once per machine. Quartus must be closed.
+#
+# Quartus 25.3+ uses plain hex colors (#RRGGBB) instead of QVariant encoding.
+# A Color_version entry is required to trigger custom color loading.
 
 QREG="$HOME/.altera.quartus/quartus2.qreg"
 
@@ -9,8 +12,8 @@ if [ ! -f "$QREG" ]; then
     exit 1
 fi
 
-# Check if already patched
-if grep -q "AFCQ_TED_BACKGROUND_COLOR" "$QREG"; then
+# Check if already patched (new format)
+if grep -q "Color_version=" "$QREG"; then
     echo "Editor colors already configured in $QREG"
     exit 0
 fi
@@ -18,49 +21,90 @@ fi
 cp "$QREG" "$QREG.bak"
 echo "Backup saved to $QREG.bak"
 
-# Find the section header to append after
+# Find the [*_quartus] section header
 SECTION=$(grep -n '^\[.*_quartus\]' "$QREG" | tail -1 | cut -d: -f1)
 if [ -z "$SECTION" ]; then
     echo "Error: Cannot find quartus settings section in $QREG"
     exit 1
 fi
 
-# Insert dark editor colors after the section's existing Color_version line,
-# or append to end of section if not found
-COLORS='Altera_Foundation_Class\\AFCQ_TED_KEYWORD_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\xff\\xff\\xff\\xff\\xff\\xff\\0\\0)
-Altera_Foundation_Class\\AFCQ_TED_NORMAL_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\xdf\\xdf\\xe1\\xe1\\xe2\\xe2\\0\\0)
-Altera_Foundation_Class\\AFCQ_TED_BACKGROUND_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\x19\\x19##--\\0\\0)
-Altera_Foundation_Class\\AFCQ_TED_LINE_NUMBER_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\xdf\\xdf\\xe1\\xe1\\xe2\\xe2\\0\\0)
-Altera_Foundation_Class\\AFCQ_TED_LINE_BACKGROUND_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\x19\\x19##--\\0\\0)
-Altera_Foundation_Class\\AFCQ_TED_SELECTION_FG_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\xdf\\xdf\\xe1\\xe1\\xe2\\xe2\\0\\0)
-Altera_Foundation_Class\\AFCQ_TED_VHDL_KEYWORDS_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\x7f\\x7f\\xaa\\xaa\\xff\\xff\\0\\0)
-Altera_Foundation_Class\\AFCQ_TED_VERILOG_KEYWORDS_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\x7f\\x7f\\xaa\\xaa\\xff\\xff\\0\\0)
-Altera_Foundation_Class\\AFCQ_TED_TCL_KEYWORDS_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\x7f\\x7f\\xaa\\xaa\\xff\\xff\\0\\0)
-Altera_Foundation_Class\\AFCQ_TED_SYS_VERILOG_KEYWORDS_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\x7f\\x7f\\xaa\\xaa\\xff\\xff\\0\\0)
-Altera_Foundation_Class\\AFCQ_TED_MULTI_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\0\\0\\xc0\\xc0\\0\\0\\0\\0)
-Altera_Foundation_Class\\AFCQ_TED_SINGLE_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\0\\0\\xc0\\xc0\\0\\0\\0\\0)
-Altera_Foundation_Class\\AFCQ_TED_STRING_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\xe8\\xe8\\0\\0\\xe8\\xe8\\0\\0)
-Altera_Foundation_Class\\AFCQ_TED_IDENTIFIER_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\xe8\\xe8\\0\\0\\xe8\\xe8\\0\\0)
-Altera_Foundation_Class\\AFCQ_MSW_WARNING_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\x7f\\x7f\\xaa\\xaa\\xff\\xff\\0\\0)
-Altera_Foundation_Class\\AFCQ_MSW_CRITICAL_WARNING_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\x7f\\x7f\\xaa\\xaa\\xff\\xff\\0\\0)
-Altera_Foundation_Class\\AFCQ_MSW_INFO_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\0\\0\\xc0\\xc0\\0\\0\\0\\0)
-Altera_Foundation_Class\\AFCQ_NUI_BACKGROUND_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\x19\\x19##--\\0\\0)
-Altera_Foundation_Class\\AFCQ_NUI_INSTANE_FONT_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\xff\\xff\\0\\0\\xff\\xff\\0\\0)
-Altera_Foundation_Class\\AFCQ_NUI_RIPPER_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\0\\0\\xff\\xff\\xff\\xff\\0\\0)
-Altera_Foundation_Class\\AFCQ_NUI_NET_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\xff\\xff\\xff\\xff\\0\\0\\0\\0)
-Altera_Foundation_Class\\AFCQ_NUI_PIN_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\0\\0\\xff\\xff\\xff\\xff\\0\\0)
-Altera_Foundation_Class\\AFCQ_NUI_PORT_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\0\\0\\xff\\xff\\xff\\xff\\0\\0)
-Altera_Foundation_Class\\AFCQ_NUI_PRIMITIVE_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\x1a\\x1arr\\xbb\\xbb\\0\\0)
-Altera_Foundation_Class\\AFCQ_NUI_SELECTION_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\xff\\xff\\0\\0\\0\\0\\0\\0)
-Altera_Foundation_Class\\AFCQ_NUI_INSTANCE_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\0\\0\\x80\\x80\\0\\0\\0\\0)
-Altera_Foundation_Class\\AFCQ_NUI_INSTANCE_REGION_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\x37\\x37\\x41\\x41OO\\0\\0)
-Altera_Foundation_Class\\AFCQ_NUI_INSTANCE_ATOM_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\x1a\\x1arr\\xbb\\xbb\\0\\0)
-Altera_Foundation_Class\\AFCQ_NUI_ENCRYPTED_INSTANCE_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xff\\x45\\x45SSdd\\0\\0)
-Altera_Foundation_Class\\AFCQ_PPLQ_BACKGROUND_COLOR=@Variant(\\0\\0\\0\\x43\\x1\\xff\\xffTThhzz\\0\\0)'
+# Remove any old-format @Variant color entries we may have previously inserted
+sed -i '/^Altera_Foundation_Class\\AFCQ_.*=@Variant/d' "$QREG"
+# Re-find section line after removals
+SECTION=$(grep -n '^\[.*_quartus\]' "$QREG" | tail -1 | cut -d: -f1)
 
-# Append colors before the Color_version line
-sed -i "/Color_version=/i\\
-$COLORS" "$QREG"
+# Dark color palette (Quartus 25.3+ hex format)
+# Colors inspired by QDarkStyle / Tokyo Night
+read -r -d '' COLORS << 'COLORBLOCK'
+Altera_Foundation_Class\Color_version=12
+Altera_Foundation_Class\AFCQ_TED_BACKGROUND_COLOR=#19232d
+Altera_Foundation_Class\AFCQ_TED_BACKGROUND_COLOR_DARK_MODE=#19232d
+Altera_Foundation_Class\AFCQ_TED_NORMAL_COLOR=#dfe1e2
+Altera_Foundation_Class\AFCQ_TED_NORMAL_COLOR_DARK_MODE=#dfe1e2
+Altera_Foundation_Class\AFCQ_TED_KEYWORD_COLOR=#ffffff
+Altera_Foundation_Class\AFCQ_TED_KEYWORD_COLOR_DARK_MODE=#ffffff
+Altera_Foundation_Class\AFCQ_TED_LINE_NUMBER_COLOR=#dfe1e2
+Altera_Foundation_Class\AFCQ_TED_LINE_NUMBER_COLOR_DARK_MODE=#dfe1e2
+Altera_Foundation_Class\AFCQ_TED_LINE_BACKGROUND_COLOR=#19232d
+Altera_Foundation_Class\AFCQ_TED_LINE_BACKGROUND_COLOR_DARK_MODE=#19232d
+Altera_Foundation_Class\AFCQ_TED_SELECTION_FG_COLOR=#dfe1e2
+Altera_Foundation_Class\AFCQ_TED_SELECTION_FG_COLOR_DARK_MODE=#dfe1e2
+Altera_Foundation_Class\AFCQ_TED_SELECTION_HIGHLIGHT_COLOR=#2e3c64
+Altera_Foundation_Class\AFCQ_TED_SELECTION_HIGHLIGHT_COLOR_DARK_MODE=#2e3c64
+Altera_Foundation_Class\AFCQ_TED_ADDITIONAL_HIGHLIGHT_COLOR=#37414f
+Altera_Foundation_Class\AFCQ_TED_ADDITIONAL_HIGHLIGHT_COLOR_DARK_MODE=#37414f
+Altera_Foundation_Class\AFCQ_TED_SINGLE_COLOR=#00c000
+Altera_Foundation_Class\AFCQ_TED_SINGLE_COLOR_DARK_MODE=#00c000
+Altera_Foundation_Class\AFCQ_TED_MULTI_COLOR=#00c000
+Altera_Foundation_Class\AFCQ_TED_MULTI_COLOR_DARK_MODE=#00c000
+Altera_Foundation_Class\AFCQ_TED_STRING_COLOR=#e800e8
+Altera_Foundation_Class\AFCQ_TED_STRING_COLOR_DARK_MODE=#e800e8
+Altera_Foundation_Class\AFCQ_TED_IDENTIFIER_COLOR=#e800e8
+Altera_Foundation_Class\AFCQ_TED_IDENTIFIER_COLOR_DARK_MODE=#e800e8
+Altera_Foundation_Class\AFCQ_TED_BOOKMARK_COLOR=#00bfff
+Altera_Foundation_Class\AFCQ_TED_BOOKMARK_COLOR_DARK_MODE=#00bfff
+Altera_Foundation_Class\AFCQ_TED_NUMBER_COLOR=#ff6347
+Altera_Foundation_Class\AFCQ_TED_NUMBER_COLOR_DARK_MODE=#ff6347
+Altera_Foundation_Class\AFCQ_TED_VHDL_KEYWORDS_COLOR=#7aaaf7
+Altera_Foundation_Class\AFCQ_TED_VHDL_KEYWORDS_COLOR_DARK_MODE=#7aaaf7
+Altera_Foundation_Class\AFCQ_TED_VHDL_STD_KEYWORDS_COLOR=#ff6eb4
+Altera_Foundation_Class\AFCQ_TED_VHDL_STD_KEYWORDS_COLOR_DARK_MODE=#ff6eb4
+Altera_Foundation_Class\AFCQ_TED_VERILOG_KEYWORDS_COLOR=#7aaaf7
+Altera_Foundation_Class\AFCQ_TED_VERILOG_KEYWORDS_COLOR_DARK_MODE=#7aaaf7
+Altera_Foundation_Class\AFCQ_TED_TCL_KEYWORDS_COLOR=#7aaaf7
+Altera_Foundation_Class\AFCQ_TED_TCL_KEYWORDS_COLOR_DARK_MODE=#7aaaf7
+Altera_Foundation_Class\AFCQ_TED_TCL_MODIFIER_KEYWORDS_COLOR=#ff6eb4
+Altera_Foundation_Class\AFCQ_TED_TCL_MODIFIER_KEYWORDS_COLOR_DARK_MODE=#ff6eb4
+Altera_Foundation_Class\AFCQ_TED_TCL_VARIABLE_SUB_KEYWORDS_COLOR=#ff6eb4
+Altera_Foundation_Class\AFCQ_TED_TCL_VARIABLE_SUB_KEYWORDS_COLOR_DARK_MODE=#ff6eb4
+Altera_Foundation_Class\AFCQ_TED_SYS_VERILOG_KEYWORDS_COLOR=#7aaaf7
+Altera_Foundation_Class\AFCQ_TED_SYS_VERILOG_KEYWORDS_COLOR_DARK_MODE=#7aaaf7
+Altera_Foundation_Class\AFCQ_TED_AHDL_KEYWORDS_COLOR=#7aaaf7
+Altera_Foundation_Class\AFCQ_TED_AHDL_KEYWORDS_COLOR_DARK_MODE=#7aaaf7
+Altera_Foundation_Class\AFCQ_MSW_WARNING_COLOR=#e0af68
+Altera_Foundation_Class\AFCQ_MSW_WARNING_COLOR_DARK_MODE=#e0af68
+Altera_Foundation_Class\AFCQ_MSW_CRITICAL_WARNING_COLOR=#ff9e64
+Altera_Foundation_Class\AFCQ_MSW_CRITICAL_WARNING_COLOR_DARK_MODE=#ff9e64
+Altera_Foundation_Class\AFCQ_MSW_INFO_COLOR=#9ece6a
+Altera_Foundation_Class\AFCQ_MSW_INFO_COLOR_DARK_MODE=#9ece6a
+Altera_Foundation_Class\AFCQ_NUI_BACKGROUND_COLOR=#19232d
+Altera_Foundation_Class\AFCQ_NUI_BACKGROUND_COLOR_DARK_MODE=#19232d
+Altera_Foundation_Class\AFCQ_NUI_INSTANE_FONT_COLOR=#ff00ff
+Altera_Foundation_Class\AFCQ_NUI_NET_COLOR=#ffff00
+Altera_Foundation_Class\AFCQ_NUI_PIN_COLOR=#00ffff
+Altera_Foundation_Class\AFCQ_NUI_PORT_COLOR=#00ffff
+Altera_Foundation_Class\AFCQ_NUI_RIPPER_COLOR=#00ffff
+Altera_Foundation_Class\AFCQ_NUI_PRIMITIVE_COLOR=#1a72bb
+Altera_Foundation_Class\AFCQ_NUI_SELECTION_COLOR=#ff0000
+Altera_Foundation_Class\AFCQ_NUI_INSTANCE_COLOR=#008000
+Altera_Foundation_Class\AFCQ_NUI_INSTANCE_REGION_COLOR=#37414f
+Altera_Foundation_Class\AFCQ_NUI_INSTANCE_ATOM_COLOR=#1a72bb
+Altera_Foundation_Class\AFCQ_NUI_ENCRYPTED_INSTANCE_COLOR=#455364
+Altera_Foundation_Class\AFCQ_PPLQ_BACKGROUND_COLOR=#54687a
+COLORBLOCK
+
+# Insert dark colors after the [*_quartus] section header
+sed -i "${SECTION}r /dev/stdin" "$QREG" <<< "$COLORS"
 
 echo "Dark editor, RTL viewer, and pin planner colors installed."
 echo "Restart Quartus to see changes."
