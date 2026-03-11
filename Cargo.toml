@@ -1,20 +1,20 @@
 [package]
-name = "quartus-dark-linux"
+name = "quarri-workspace"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "QuarRI™ — dark-themed launcher for Intel Quartus Prime on Linux"
 license = "MPL-2.0"
-repository = "https://github.com/saturn77/quartus-dark-linux"
+repository = "https://github.com/atlantix-eda/quarri"
 authors = ["James Bonanno <atlantix-eda@proton.me>"]
 
 [workspace]
-members = ["inject", "launcher"]
-default-members = ["launcher"]
+members = ["crates/inject", "crates/launcher"]
+default-members = ["crates/launcher"]
 resolver = "2"
 
 [[bin]]
 name = "quarri"
-path = "launcher/src/main.rs"
+path = "crates/launcher/src/main.rs"
 
 [dependencies]
 eframe = "0.32"

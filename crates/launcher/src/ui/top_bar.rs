@@ -226,7 +226,7 @@ impl TopBar {
                     );
                     ui.add_space(2.0);
                     ui.label(
-                        RichText::new("github.com/saturn77/quartus-dark-linux")
+                        RichText::new("github.com/atlantix-eda/quarri")
                             .color(TokyoNight::COMMENT)
                             .size(13.0),
                     );

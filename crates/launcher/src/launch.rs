@@ -22,7 +22,7 @@ fn resolve_qss(project_dir: &Path) -> Option<String> {
 fn inject_lib(project_dir: &Path) -> Option<String> {
     let candidates = [
         project_dir.join("target/release/libqss_inject.so"),
-        project_dir.join("inject/target/release/libqss_inject.so"),
+        project_dir.join("crates/inject/target/release/libqss_inject.so"),
     ];
     candidates
         .iter()

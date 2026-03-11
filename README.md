@@ -37,8 +37,8 @@ Follow the prompts (the defaults are fine), then restart your shell or run `sour
 ### QuarRI™ Launcher (recommended)
 
 ```bash
-git clone https://github.com/saturn77/quartus-dark-linux.git
-cd quartus-dark-linux
+git clone https://github.com/atlantix-eda/quarri.git
+cd quarri
 cargo install --path .
 ```
 
@@ -53,8 +53,8 @@ The launcher auto-detects Quartus installations, lets you configure dark theme o
 ### Manual (shell scripts)
 
 ```bash
-git clone https://github.com/saturn77/quartus-dark-linux.git
-cd quartus-dark-linux
+git clone https://github.com/atlantix-eda/quarri.git
+cd quarri
 
 # Patch editor, RTL viewer, and pin planner colors (one-time, Quartus must be closed)
 ./install_linux.sh
@@ -63,7 +63,7 @@ cd quartus-dark-linux
 ./launch_quartus.sh
 ```
 
-On first run, `launch_quartus.sh` will automatically build the Rust `LD_PRELOAD` library (`inject/target/release/libqss_inject.so`). Subsequent launches skip the build unless source has changed.
+On first run, `launch_quartus.sh` will automatically build the Rust `LD_PRELOAD` library (`crates/inject/target/release/libqss_inject.so`). Subsequent launches skip the build unless source has changed.
 
 ### Building the inject library separately
 
@@ -82,17 +82,18 @@ cargo build --release -p qss_inject
 ## Project structure
 
 ```
-quartus-dark-linux/
-├── launcher/          # QuarRI™ egui launcher (quarri binary)
-│   └── src/
-│       ├── main.rs    # Entry point, splash screen, dock layout
-│       ├── state.rs   # Reactive state (egui_mobius_reactive)
-│       ├── scanner.rs # Auto-detect Quartus installations
-│       ├── launch.rs  # Spawn Quartus with LD_PRELOAD
-│       ├── theme.rs   # Tokyo Night Storm palette
-│       └── ui/        # Panels: installs, settings, log, splash, top_bar
-├── inject/            # LD_PRELOAD cdylib (qss_inject)
-│   └── src/lib.rs
+quarri/
+├── crates/
+│   ├── launcher/      # QuarRI™ egui launcher (quarri binary)
+│   │   └── src/
+│   │       ├── main.rs    # Entry point, splash screen, dock layout
+│   │       ├── state.rs   # Reactive state (egui_mobius_reactive)
+│   │       ├── scanner.rs # Auto-detect Quartus installations
+│   │       ├── launch.rs  # Spawn Quartus with LD_PRELOAD
+│   │       ├── theme.rs   # Tokyo Night Storm palette
+│   │       └── ui/        # Panels: installs, settings, log, splash, top_bar
+│   └── inject/        # LD_PRELOAD cdylib (qss_inject)
+│       └── src/lib.rs
 ├── assets/            # QSS stylesheet and dark icons
 ├── install_linux.sh   # One-time qreg color patch
 └── launch_quartus.sh  # Manual launch script
