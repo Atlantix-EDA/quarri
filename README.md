@@ -15,6 +15,11 @@
 
 Tested with Quartus Prime Pro 25.3.1 (Qt 6.5.7) on **Linux Mint 22.3 Cinnamon.**
 
+The GUI manager, **QuarRI** : 
+![alt text](assets/quarriDemo.gif)
+
+
+The dark theme applied to Quartus : 
 ![alt text](assets/quartus_mint_demo2.gif)
 
 ## Requirements
@@ -42,7 +47,7 @@ cd quarri
 cargo install --path .
 ```
 
-This installs the `quarri` binary to `~/.cargo/bin/`. Run it from anywhere:
+This runs a release build and installs the `quarri` binary to `~/.cargo/bin/` (which should already be on your `PATH` if you installed Rust via rustup). Run it from the project directory:
 
 ```bash
 quarri

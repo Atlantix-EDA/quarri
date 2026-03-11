@@ -15,6 +15,8 @@ pub struct LauncherState {
     pub editor_colors: Dynamic<bool>,
     /// QSYS font size override (0 = auto-detect from DPI).
     pub qsys_fontsize: Dynamic<u32>,
+    /// Global UI font scale percentage (100 = default).
+    pub ui_scale: Dynamic<u32>,
 }
 
 impl LauncherState {
@@ -26,6 +28,7 @@ impl LauncherState {
             dark_theme: Dynamic::new(true),
             editor_colors: Dynamic::new(true),
             qsys_fontsize: Dynamic::new(0),
+            ui_scale: Dynamic::new(115),
         }
     }
 

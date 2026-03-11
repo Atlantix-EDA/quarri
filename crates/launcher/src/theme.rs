@@ -9,14 +9,12 @@ impl TokyoNight {
     // Backgrounds
     pub const BG:         Color32 = Color32::from_rgb(0x24, 0x28, 0x3b);
     pub const BG_DARK:    Color32 = Color32::from_rgb(0x1f, 0x23, 0x35);
-    pub const BG_FLOAT:   Color32 = Color32::from_rgb(0x1f, 0x23, 0x35);
     pub const BG_HIGHLIGHT: Color32 = Color32::from_rgb(0x2f, 0x33, 0x4d);
 
     // Foregrounds
     pub const FG:         Color32 = Color32::from_rgb(0xc0, 0xca, 0xf5);
     pub const FG_DIM:     Color32 = Color32::from_rgb(0xa9, 0xb1, 0xd6);
     pub const COMMENT:    Color32 = Color32::from_rgb(0x56, 0x5f, 0x89);
-    pub const FG_GUTTER:  Color32 = Color32::from_rgb(0x3b, 0x40, 0x61);
 
     // Accent colors
     pub const BLUE:       Color32 = Color32::from_rgb(0x7a, 0xa2, 0xf7);
@@ -67,4 +65,25 @@ pub fn apply_visuals(ctx: &egui::Context) {
     visuals.window_stroke = egui::Stroke::new(1.0, TokyoNight::BORDER);
 
     ctx.set_visuals(visuals);
+}
+
+/// Base font sizes (egui defaults) — stored so we can scale from them.
+const BASE_FONT_SIZES: &[(egui::TextStyle, f32)] = &[
+    (egui::TextStyle::Small, 9.0),
+    (egui::TextStyle::Body, 12.5),
+    (egui::TextStyle::Monospace, 12.0),
+    (egui::TextStyle::Button, 12.5),
+    (egui::TextStyle::Heading, 18.0),
+];
+
+/// Apply a font scale percentage (100 = default egui sizes).
+pub fn apply_font_scale(ctx: &egui::Context, scale_pct: u32) {
+    let factor = scale_pct as f32 / 100.0;
+    let mut style = (*ctx.style()).clone();
+    for (text_style, base_size) in BASE_FONT_SIZES {
+        if let Some(font_id) = style.text_styles.get_mut(text_style) {
+            font_id.size = base_size * factor;
+        }
+    }
+    ctx.set_style(style);
 }

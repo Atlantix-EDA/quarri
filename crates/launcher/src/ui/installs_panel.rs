@@ -77,7 +77,7 @@ impl InstallsPanel {
                             {
                                 selected = Some(i);
                                 state.selected.set(selected);
-                                log.push(format!("Selected: {}", install.label));
+                                log.push(format!("[INFO] Selected: {}", install.label));
                             }
                         });
 
@@ -111,8 +111,8 @@ impl InstallsPanel {
                             qsys_fontsize: state.qsys_fontsize.get(),
                         };
                         match crate::launch::spawn(&config) {
-                            Ok(msg) => log.push(msg),
-                            Err(e) => log.push(format!("ERROR: {e}")),
+                            Ok(msg) => log.push(format!("[INFO] {msg}")),
+                            Err(e) => log.push(format!("[ERROR] {e}")),
                         }
                     }
                 }

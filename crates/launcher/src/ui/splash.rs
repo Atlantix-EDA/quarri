@@ -1,6 +1,6 @@
 //! Splash screen — "QuarRI™" branding on launch.
 
-use egui::{Align2, Color32, FontId, RichText};
+use egui::{Align2, Color32, FontId};
 use crate::theme::TokyoNight;
 
 const SPLASH_DURATION: f64 = 2.5; // seconds

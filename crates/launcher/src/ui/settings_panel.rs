@@ -27,8 +27,11 @@ impl SettingsPanel {
                 .changed()
             {
                 state.dark_theme.set(dark);
-                let status = if dark { "enabled" } else { "disabled" };
-                log.push(format!("Dark QSS theme {status}"));
+                if dark {
+                    log.push("[INFO] Dark QSS theme enabled".into());
+                } else {
+                    log.push("[WARN] Dark QSS theme disabled".into());
+                }
             }
             ui.label(
                 RichText::new("  Injects dark stylesheet via LD_PRELOAD")
@@ -48,8 +51,11 @@ impl SettingsPanel {
                 .changed()
             {
                 state.editor_colors.set(editor);
-                let status = if editor { "enabled" } else { "disabled" };
-                log.push(format!("Editor colors {status}"));
+                if editor {
+                    log.push("[INFO] Editor colors enabled".into());
+                } else {
+                    log.push("[WARN] Editor colors disabled".into());
+                }
             }
             ui.label(
                 RichText::new("  QScintilla editor, RTL viewer, Pin Planner")
@@ -74,14 +80,35 @@ impl SettingsPanel {
                             format!("{:.0}", v)
                         }
                     });
-                if ui.add(slider).changed() {
+                let response = ui.add(slider);
+                if response.changed() {
                     state.qsys_fontsize.set(size);
+                }
+                if response.drag_stopped() || response.lost_focus() {
                     let label = if size == 0 {
                         "auto (DPI-based)".to_string()
                     } else {
                         format!("{size}pt")
                     };
-                    log.push(format!("QSYS font size: {label}"));
+                    log.push(format!("[INFO] QSYS font size: {label}"));
+                }
+            });
+
+            ui.add_space(8.0);
+
+            // UI font scale
+            ui.horizontal(|ui| {
+                ui.label(
+                    RichText::new("UI Font Scale:")
+                        .color(TokyoNight::FG),
+                );
+                let mut scale = state.ui_scale.get();
+                let slider = egui::Slider::new(&mut scale, 80..=160)
+                    .text("%")
+                    .custom_formatter(|v, _| format!("{:.0}%", v));
+                let response = ui.add(slider);
+                if response.drag_stopped() || (!response.dragged() && response.changed()) {
+                    state.ui_scale.set(scale);
                 }
             });
 
@@ -100,8 +127,8 @@ impl SettingsPanel {
 
             if ui.add(btn).clicked() {
                 match run_install_script() {
-                    Ok(msg) => log.push(msg),
-                    Err(e) => log.push(format!("ERROR: {e}")),
+                    Ok(msg) => log.push(format!("[INFO] {msg}")),
+                    Err(e) => log.push(format!("[ERROR] {e}")),
                 }
             }
             ui.label(
@@ -113,12 +140,47 @@ impl SettingsPanel {
     }
 }
 
+/// Baked-in source directory from build time.
+const BUILD_SOURCE_DIR: &str = env!("CARGO_MANIFEST_DIR");
+
+fn find_project_root() -> Option<std::path::PathBuf> {
+    let marker = "install_linux.sh";
+    // 1. Walk up from executable (dev builds)
+    if let Ok(exe) = std::env::current_exe() {
+        let mut dir = exe.parent();
+        while let Some(d) = dir {
+            if d.join(marker).is_file() {
+                return Some(d.to_path_buf());
+            }
+            dir = d.parent();
+        }
+    }
+    // 2. Current working directory
+    if let Ok(cwd) = std::env::current_dir() {
+        if cwd.join(marker).is_file() {
+            return Some(cwd);
+        }
+    }
+    // 3. Build-time source directory
+    //    CARGO_MANIFEST_DIR is either the root (cargo install) or crates/launcher/ (cargo run)
+    let build_dir = std::path::Path::new(BUILD_SOURCE_DIR);
+    // Try the dir itself, then walk up to find the marker
+    let mut dir = Some(build_dir);
+    while let Some(d) = dir {
+        if d.join(marker).is_file() {
+            return Some(d.to_path_buf());
+        }
+        dir = d.parent();
+    }
+    None
+}
+
 fn run_install_script() -> Result<String, String> {
-    let script = std::env::current_exe()
-        .ok()
-        .and_then(|p| p.parent()?.parent()?.parent().map(|p| p.to_path_buf()))
-        .unwrap_or_else(|| std::env::current_dir().unwrap_or_default())
-        .join("install_linux.sh");
+    let project_root = find_project_root().ok_or(
+        "install_linux.sh not found — run quarri from the project directory, \
+         or run ./install_linux.sh manually"
+    )?;
+    let script = project_root.join("install_linux.sh");
 
     if !script.is_file() {
         return Err(format!("install_linux.sh not found at {}", script.display()));
